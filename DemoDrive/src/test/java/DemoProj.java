@@ -1,23 +1,34 @@
 import com.google.api.client.http.FileContent;
+
 import javax.swing.*;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
+import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
 import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.script.*;
 
 public class DemoProj extends JFrame implements ActionListener
 {
     private static final Font MENU_FONT = new Font("Helventica", Font.PLAIN, 14);
     private static final Font BODY_FONT = new Font("Arial", Font.PLAIN, 14);
 
-    JTextArea t;
+    public JTextArea t;
     JFrame f;
 
-    DemoProj()
+    DemoProj(Peer peer)
     {
         f = new JFrame("Text editor");
 
@@ -40,12 +51,15 @@ public class DemoProj extends JFrame implements ActionListener
         JMenuItem mi1 = new JMenuItem(" New ");
         JMenuItem mi2 = new JMenuItem(" Open ");
         JMenuItem mi3 = new JMenuItem(" Save ");
+        JMenuItem mi7 = new JMenuItem(" Share ");
         mi1.addActionListener(this);
         mi2.addActionListener(this);
         mi3.addActionListener(this);
+        mi7.addActionListener(this);
         m1.add(mi1);
         m1.add(mi2);
         m1.add(mi3);
+        m1.add(mi7);
 
         JMenu m2 = new JMenu(" Edit ");
         JMenuItem mi4 = new JMenuItem(" Cut ");
@@ -57,16 +71,21 @@ public class DemoProj extends JFrame implements ActionListener
         m2.add(mi4);
         m2.add(mi5);
         m2.add(mi6);
-
+        
         JMenuItem mc = new JMenuItem(" Close ");
         mc.addActionListener(this);
 
         mb.add(m1);
         mb.add(m2);
         mb.add(mc);
-
+        
+        t.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+        t.getDocument().addDocumentListener(peer);
+        t.getDocument().putProperty("name", "Text Area");
+        
         f.setJMenuBar(mb);
         f.add(t);
+        //f.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         f.setSize(500, 500);
         f.show();
     }
@@ -108,12 +127,14 @@ public class DemoProj extends JFrame implements ActionListener
     				{ 
     					JOptionPane.showMessageDialog(f, evt.getMessage()); 
     				} 
+    				DriveQuickstart.saveFile(filename);
+    				fi.delete();
     			} 
     			else
     			{
-    				JOptionPane.showMessageDialog(f, "the user cancelled the operation"); 
+    				JOptionPane.showMessageDialog(f, "The user cancelled the operation"); 
     			}
-                DriveQuickstart.Drive(filename);
+                
             } 
             catch (IOException e1)
             {
@@ -124,66 +145,57 @@ public class DemoProj extends JFrame implements ActionListener
                 e1.printStackTrace();
             }
         }
-        else if (s.equals("Open"))
+        else if (s.equals(" Open "))
         {
-            // Create an object of JFileChooser class
-            JFileChooser j = new JFileChooser("f:");
-
-            // Invoke the showsOpenDialog function to show the save dialog
-            int r = j.showOpenDialog(null);
-
-            // If the user selects a file
-            if (r == JFileChooser.APPROVE_OPTION)
+            try
             {
-                // Set the label to the path of the selected directory
-                File fi = new File(j.getSelectedFile().getAbsolutePath());
-
-                try
-                {
-                    // String
-                    String s1 = "", sl = "";
-
-                    // File reader
-                    FileReader fr = new FileReader(fi);
-
-                    // Buffered reader
-                    BufferedReader br = new BufferedReader(fr);
-
-                    // Initilize sl
-                    sl = br.readLine();
-
-                    // Take the input from the file
-                    while ((s1 = br.readLine()) != null) {
-                        sl = sl + "\n" + s1;
-                    }
-
-                    // Set the text
-                    t.setText(sl);
-                }
-                catch (Exception evt)
-                {
-                    JOptionPane.showMessageDialog(f, evt.getMessage());
-                }
-            }
-            else
+				DriveQuickstart.createService();
+			} 
+            catch (IOException e1) 
             {
-                JOptionPane.showMessageDialog(f, "the user cancelled the operation");
-            }
+				e1.printStackTrace();
+			} 
+            catch (GeneralSecurityException e1)
+            {
+				e1.printStackTrace();
+			}
         }
-        else if (s.equals("New"))
+        else if (s.equals(" New "))
         {
             t.setText("");
         }
-        else if (s.equals("Close"))
+        else if (s.equals(" Share "))
+        {
+        	String email = "";
+        	email = JOptionPane.showInputDialog("Enter email address to share the file with");
+        	if (!email.equals(null)) 
+			{ 
+        		try 
+        		{
+					DriveQuickstart.createPermissionForEmail(email);
+				} 
+        		catch (IOException e1)
+        		{
+					e1.printStackTrace();
+				} 
+        		catch (GeneralSecurityException e1)
+        		{
+					e1.printStackTrace();
+				}
+			}
+        	else
+			{
+				JOptionPane.showMessageDialog(f, "The user cancelled the operation"); 
+			}
+        }
+        else if (s.equals(" Close "))
         {
             f.setVisible(false);
         }
     }
-
-    public static void main(String args[])
-    {
-        DemoProj e = new DemoProj();
-
-    }
 }
+
+
+
+
 

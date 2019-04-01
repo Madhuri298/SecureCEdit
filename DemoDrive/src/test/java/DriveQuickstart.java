@@ -13,7 +13,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
-
+import com.google.api.services.drive.model.Permission;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -58,8 +58,8 @@ public class DriveQuickstart
         return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
     }
 
-    //public static void Drive(String... args) throws IOException, GeneralSecurityException
-    public static void Drive(String filename) throws IOException, GeneralSecurityException
+    //to create credentials folder
+    private static void createCredentials() throws IOException, GeneralSecurityException
     {
     	System.out.println("CREDENTIALS_FOLDER: " + CREDENTIALS_FOLDER.getAbsolutePath());
 
@@ -71,7 +71,11 @@ public class DriveQuickstart
             System.out.println("Copy file " + CLIENT_SECRET_FILE_NAME + " into folder above.. and rerun this class!!");
             return;
         }
-
+    }
+    
+    //to create service
+    public static Drive createService() throws IOException, GeneralSecurityException
+    {
         //2: Build a new authorized API client service.
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 
@@ -80,24 +84,16 @@ public class DriveQuickstart
 
         //5: Create Google Drive Service.
         Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME).build();
+        return service;
 
-        //Print the names and IDs for up to 10 files.
-        /*FileList result = service.files().list().setPageSize(10).setFields("nextPageToken, files(id, name)").execute();
-        List<File> files = result.getFiles();
-        if (files == null || files.isEmpty())
-        {
-        	System.out.println("No files found.");
-        }
-        else
-        {
-        	System.out.println("Files:");
-        	for (File file : files)
-        	{
-        		System.out.printf("%s (%s)\n", file.getName(), file.getId());
-        	}
-        }*/
-        
-        //To upload a file from file system to Google Drive and print the File ID
+    }
+    
+    //To upload a file from file system to Google Drive and print the File ID
+    public static void saveFile(String filename) throws IOException, GeneralSecurityException
+    {
+    	createCredentials();
+    	Drive service = createService();
+    	
         File fileMetadata = new File();
         fileMetadata.setName(filename + ".txt");
         java.io.File filePath = new java.io.File("C:\\Users\\Madhuri\\Documents\\Project\\Files\\" + filename + ".txt");
@@ -106,4 +102,52 @@ public class DriveQuickstart
         System.out.println("File successfully uploaded to drive");
         System.out.println("File ID: " + file.getId());
     }
+    
+    //to share file 
+    /*public static void shareFile(String email) throws IOException, GeneralSecurityException
+    {
+    	Drive service = createService();
+    	FileList result = service.files().list().setPageSize(1).setFields("nextPageToken, files(id, name)").execute();
+        List<File> files = result.getFiles();
+        if (files == null || files.isEmpty())
+        {
+        	System.out.println("No files found.");
+        }
+        else
+        {
+        	File file = files.get(0);
+        	System.out.printf("The file is: %s and the File ID is: %s", file.getName(), file.getId());
+        	file.getPermissions();
+        }
+    }*/
+    
+    public static Permission createPermissionForEmail(String email) throws IOException, GeneralSecurityException {
+        // user - group - domain - anyone
+        String permissionType = "user"; 
+        // organizer - owner - writer - commenter - reader
+        String permissionRole = "reader";
+ 
+        Permission newPermission = new Permission();
+        newPermission.setType(permissionType);
+        newPermission.setRole(permissionRole);
+        newPermission.setEmailAddress(email);
+ 
+        Drive service = createService();
+        FileList result = service.files().list().setPageSize(1).setFields("nextPageToken, files(id, name)").execute();
+        List<File> files = result.getFiles();
+        if (files == null || files.isEmpty())
+        {
+        	System.out.println("No files found.");
+        	return null;
+        }
+        else
+        {
+        	File file = files.get(0);
+        	System.out.printf("The file is: %s and the File ID is: %s\n", file.getName(), file.getId());
+        	System.out.printf("File successfully shared with: %s", email);
+        	return service.permissions().create(file.getId().toString(), newPermission).execute();
+        }
+    }
+ 
+    
 }
