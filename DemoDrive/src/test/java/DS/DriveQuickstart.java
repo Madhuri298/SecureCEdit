@@ -1,3 +1,4 @@
+package DS;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -19,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
@@ -148,6 +150,11 @@ public class DriveQuickstart
         	return service.permissions().create(file.getId().toString(), newPermission).execute();
         }
     }
- 
+    public static void openFile(String filename) throws IOException, GeneralSecurityException 
+    {
+    	createCredentials();
+    	Drive service = createService();
+    }
+
     
 }

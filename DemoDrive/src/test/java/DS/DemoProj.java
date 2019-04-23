@@ -1,4 +1,4 @@
-package test;
+package DS;
 import com.google.api.client.http.FileContent;
 
 import javax.swing.*;
@@ -81,7 +81,6 @@ public class DemoProj extends JFrame implements ActionListener
         mb.add(mc);
         
         t.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-        t.getDocument().addDocumentListener(peer);
         t.getDocument().putProperty("name", "Text Area");
         
         f.setJMenuBar(mb);
@@ -150,7 +149,16 @@ public class DemoProj extends JFrame implements ActionListener
         {
             try
             {
-				DriveQuickstart.createService();
+            	String filename = "";
+            	filename = JOptionPane.showInputDialog("Enter the File Name to open");
+            	if ( ! filename.equals(null)) 
+    			{ 
+            		DriveQuickstart.openFile(filename);
+    			}
+            	else
+    			{
+    				JOptionPane.showMessageDialog(f, "The user cancelled the operation"); 
+    			}
 			} 
             catch (IOException e1) 
             {
